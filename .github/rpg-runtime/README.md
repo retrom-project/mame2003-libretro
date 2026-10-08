@@ -27,6 +27,10 @@ and builds with the pinned Emscripten image and EmulatorJS RetroArch linker in
 `source.tar.gz` and `retrom-core-candidate.json`. All drivers remain enabled.
 The internal `path_basedir` declaration and implementation use the length return
 value of the pinned frontend library, so static Web linking has one C ABI.
+The core defaults `skip_disclaimer` and `skip_warnings` to enabled, so startup
+prompts do not cover a cold-restored game. This is set in `core_options.c`;
+the EmulatorJS settings callback replaces `.opt` files during startup, so the
+package does not rely on a prewritten option file.
 The core owns its CHD implementation, so the frontend CHD reader is disabled
 to avoid duplicate symbols; core driver CHD support is retained.
 No game files or external BIOS downloads are included. Runtime only consumes
