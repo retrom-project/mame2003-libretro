@@ -100,6 +100,7 @@ $8000 - $ffff	ROM
 ***************************************************************************/
 
 #include "driver.h"
+#include "state.h"
 #include "vidhrdw/generic.h"
 #include "cpu/m6502/m6502.h"
 #include "cpu/m6809/m6809.h"
@@ -164,22 +165,26 @@ static const UINT8 kuniokun_xor_table[0x2a] = {
 	0xca,0xd0,0xed,0x68,0x85,0x01,0x68,0xaa,0x68,0x60
 };
 
+static void setup_statesave(void);
+
 DRIVER_INIT( kuniokun )
 {
 	mcu_type = 0x85;
 	mcu_encrypt_table = kuniokun_xor_table;
 	mcu_encrypt_table_len = 0x2a;
+	setup_statesave();
 }
 DRIVER_INIT( renegade )
 {
 	mcu_type = 0xda;
 	mcu_encrypt_table = renegade_xor_table;
 	mcu_encrypt_table_len = 0x37;
+	setup_statesave();
 }
 
 #define MCU_BUFFER_MAX 6
 static UINT8 mcu_buffer[MCU_BUFFER_MAX];
-static size_t mcu_input_size;
+static UINT32 mcu_input_size;
 static int mcu_output_byte;
 static int mcu_key;
 
@@ -355,6 +360,29 @@ static READ_HANDLER( mcu_r )
 /********************************************************************************************/
 
 static int bank;
+static int irq_phase;
+
+static void setbank(void)
+{
+	UINT8 *RAM = memory_region(REGION_CPU1);
+	cpu_setbank(1, &RAM[bank ? 0x10000 : 0x4000]);
+}
+
+static void setup_statesave(void)
+{
+	state_save_register_int("renegade", 0, "bank", &bank);
+	state_save_register_int("renegade", 0, "irq_phase", &irq_phase);
+	state_save_register_UINT8("renegade", 0, "mcu_buffer", mcu_buffer, MCU_BUFFER_MAX);
+	state_save_register_UINT32("renegade", 0, "mcu_input_size", &mcu_input_size, 1);
+	state_save_register_int("renegade", 0, "mcu_output_byte", &mcu_output_byte);
+	state_save_register_int("renegade", 0, "mcu_key", &mcu_key);
+	state_save_register_func_postload(setbank);
+}
+
+DRIVER_INIT( kuniokub )
+{
+	setup_statesave();
+}
 
 static WRITE_HANDLER( bankswitch_w )
 {
@@ -380,9 +408,8 @@ static INTERRUPT_GEN( renegade_interrupt )
 	else coin = 0;
 */
 
-	static int count;
-	count = !count;
-	if( count )
+	irq_phase = !irq_phase;
+	if( irq_phase )
 		cpu_set_irq_line(0, IRQ_LINE_NMI, PULSE_LINE);
 	else
 		cpu_set_irq_line(0, 0, HOLD_LINE);
@@ -823,4 +850,4 @@ ROM_END
 
 GAME( 1986, renegade, 0,		 renegade, renegade, renegade, ROT0, "Technos (Taito America license)", "Renegade (US)" )
 GAME( 1986, kuniokun, renegade, renegade, renegade, kuniokun, ROT0, "Technos", "Nekketsu Kouha Kunio-kun (Japan)" )
-GAME( 1986, kuniokub, renegade, renegade, renegade, 0, 	   ROT0, "bootleg", "Nekketsu Kouha Kunio-kun (Japan bootleg)" )
+GAME( 1986, kuniokub, renegade, renegade, renegade, kuniokub, ROT0, "bootleg", "Nekketsu Kouha Kunio-kun (Japan bootleg)" )
