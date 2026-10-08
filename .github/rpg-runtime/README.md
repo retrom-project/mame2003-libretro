@@ -25,6 +25,8 @@ The candidate recipe runs the native regression, archives only source paths,
 and builds with the pinned Emscripten image and EmulatorJS RetroArch linker in
 `retrom-fork.json`. It produces `mame2003-wasm.data`, `LICENSE.md`,
 `source.tar.gz` and `retrom-core-candidate.json`. All drivers remain enabled.
+The internal `path_basedir` declaration and implementation use the length return
+value of the pinned frontend library, so static Web linking has one C ABI.
 The core owns its CHD implementation, so the frontend CHD reader is disabled
 to avoid duplicate symbols; core driver CHD support is retained.
 No game files or external BIOS downloads are included. Runtime only consumes

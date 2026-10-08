@@ -134,7 +134,7 @@ const char *path_basename_nocompression(const char *path);
  * Extracts base directory by mutating path.
  * Keeps trailing '/'.
  **/
-void path_basedir(char *path);
+size_t path_basedir(char *path);
 
 /**
  * path_parent_dir:

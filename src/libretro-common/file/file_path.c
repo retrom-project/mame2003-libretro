@@ -514,12 +514,12 @@ void fill_str_dated_filename(char *out_filename,
  * Extracts base directory by mutating path.
  * Keeps trailing '/'.
  **/
-void path_basedir(char *path)
+size_t path_basedir(char *path)
 {
    char *last = NULL;
 
    if (strlen(path) < 2)
-      return;
+      return strlen(path);
 
    last = find_last_slash(path);
 
@@ -527,6 +527,8 @@ void path_basedir(char *path)
       last[1] = '\0';
    else
       strlcpy(path, "." PATH_DEFAULT_SLASH(), 3);
+
+   return strlen(path);
 }
 
 /**
